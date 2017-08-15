@@ -5,7 +5,6 @@
  * @package WooCommerce Payment Genoapay gateway
  */
 
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -15,22 +14,54 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WooCommerce_Gateway_Genoapay_API_Handler {
 
+	/**
+	 * Production endpoint
+	 *
+	 * @var string
+	 */
 	private static $endpoint = 'https://api.genoapay.com/v1';
-	
+
+	/**
+	 * Sandbox endpoint
+	 *
+	 * @var string
+	 */
 	private static $sandbox_endpoint = 'https://sandbox-api.genoapay.com/v1';
 
-	/** @var string API Client ID */
-	public static $client_id;
+	/**
+	 * API Client Key
+	 *
+	 * @var string
+	 */
+	public static $client_key;
 
-	/** @var string API Client Secret */
+	/**
+	 * API Client Secret
+	 *
+	 * @var string
+	 */
 	public static $client_secret;
 
-	/** @var bool Sandbox */
+	/**
+	 * Enable/disbale sandbox mode
+	 *
+	 * @var boolean
+	 */
 	public static $sandbox = false;
 
+	/**
+	 * Auth token from retrieved from API
+	 *
+	 * @var string
+	 */
 	private static $auth_token = false;
 
 
+	/**
+	 * Get API endpoint by sandbox mode
+	 *
+	 * @return string API endpoint
+	 */
 	public static function get_endpoint() {
 		if ( 'yes' === self::$sandbox ) {
 			return self::$sandbox_endpoint;
@@ -39,10 +70,20 @@ class WooCommerce_Gateway_Genoapay_API_Handler {
 		}
 	}
 
+	/**
+	 * Get auth token
+	 *
+	 * @return string auth token
+	 */
 	public static function get_auth_token() {
 		return self::$auth_token;
 	}
 
+	/**
+	 * Authenticate the merchant server and obtain the auth_token used to validate the source of the api requests.
+	 *
+	 * @throws Exception Thrown on failure.
+	 */
 	public static function post_token() {
 		$response = wp_safe_remote_post(
 			self::get_endpoint() . '/token',
@@ -52,7 +93,7 @@ class WooCommerce_Gateway_Genoapay_API_Handler {
 				'user-agent'  => 'WooCommerce/' . WC()->version,
 				'httpversion' => '1.1',
 				'headers'     => array(
-					'Authorization' => 'Basic ' . base64_encode(  self::$client_id . ':' . self::$client_secret ),
+					'Authorization' => 'Basic ' . base64_encode( self::$client_key . ':' . self::$client_secret ),
 				),
 			)
 		);
@@ -62,11 +103,17 @@ class WooCommerce_Gateway_Genoapay_API_Handler {
 		}
 
 		$auth = json_decode( $response['body'] );
-		if( ! empty( $auth->auth_token ) ) {
+		if ( ! empty( $auth->auth_token ) ) {
 			self::$auth_token = $auth->auth_token;
 		}
 	}
 
+	/**
+	 * Updates the client server with the latest configuration from the Genoapay system.
+	 *
+	 * @return array response from API
+	 * @throws Exception Thrown on failure.
+	 */
 	public static function get_configuration() {
 		$response = wp_safe_remote_post(
 			self::get_endpoint() . '/configuration',
@@ -86,11 +133,18 @@ class WooCommerce_Gateway_Genoapay_API_Handler {
 		}
 
 		$configuration = json_decode( $response['body'] );
-		if( empty( $configuration->error ) ) {
+		if ( empty( $configuration->error ) ) {
 			return $configuration;
 		}
 	}
 
+	/**
+	 * Creates a sale in the Genoapay system and returns the token to use when the user is redirected to complete the payment.
+	 *
+	 * @param  array $request request body.
+	 * @return string payment url
+	 * @throws Exception Thrown on failure.
+	 */
 	public static function post_sale( $request ) {
 		$response = wp_safe_remote_post(
 			self::get_endpoint() . '/sale',
@@ -112,16 +166,24 @@ class WooCommerce_Gateway_Genoapay_API_Handler {
 
 		$sale = json_decode( $response['body'] );
 
-		if( ! empty( $sale->paymentUrl ) ) {
+		if ( ! empty( $sale->paymentUrl ) ) {
 			return $sale->paymentUrl;
 		} else {
 			return false;
 		}
 	}
 
+	/**
+	 * Request a refund in the Genoapay system.
+	 *
+	 * @param  array    $request request body.
+	 * @param  WC_Order $order   woocommerce order.
+	 * @return string refund id
+	 * @throws Exception Thrown on failure.
+	 */
 	public static function sale_refund( $request, $order ) {
 		$response = wp_safe_remote_post(
-			self::get_endpoint() . '/sale'. '/' .  $order->get_transaction_id() .'/refund',
+			self::get_endpoint() . sprintf( '/sale/%s/refund', $order->get_transaction_id() ),
 			array(
 				'method'      => 'POST',
 				'timeout'     => 70,
@@ -132,7 +194,7 @@ class WooCommerce_Gateway_Genoapay_API_Handler {
 					'Authorization' => 'Bearer ' . self::$auth_token,
 				),
 			)
-		);;
+		);
 
 		if ( is_wp_error( $response ) ) {
 			throw new Exception( $response->get_error_message() );
@@ -140,7 +202,7 @@ class WooCommerce_Gateway_Genoapay_API_Handler {
 
 		$refund = json_decode( $response['body'] );
 
-		if( ! empty( $refund->refundId ) ) {
+		if ( ! empty( $refund->refundId ) ) {
 			return $refund->refundId;
 		} else {
 			return false;

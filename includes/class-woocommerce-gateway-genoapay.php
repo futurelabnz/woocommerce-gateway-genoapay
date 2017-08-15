@@ -15,13 +15,33 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 
+	/**
+	 * Minimum purchase amount
+	 *
+	 * @var string
+	 */
 	protected $minimum_amount;
 
+	/**
+	 * Maximum purchase amount
+	 *
+	 * @var string
+	 */
 	protected $maximum_amount;
 
+	/**
+	 * Genoapay description
+	 *
+	 * @var string
+	 */
 	protected $genoapay_description;
 
-	public $genoapay_currencies = array();
+	/**
+	 * Genoapay support currencies
+	 *
+	 * @var array
+	 */
+	protected $genoapay_currencies = array();
 
 	/**
 	 * Constructor for the gateway.
@@ -43,25 +63,25 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 		// Define user set variables.
 		$this->sandbox       = $this->get_option( 'sandbox' );
 		$this->title       		= $this->get_option( 'title' );
-		$this->client_id 	= $this->get_option( 'client_id' );
+		$this->client_key 	= $this->get_option( 'client_key' );
 		$this->client_secret 	= $this->get_option( 'client_secret' );
 
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
 		include_once( GENOAPAY_PLUGIN_DIR . '/includes/class-woocommerce-gateway-genoapay-api-handler.php' );
 
-		WooCommerce_Gateway_Genoapay_API_Handler::$client_id  = $this->get_option( 'client_id' );
+		WooCommerce_Gateway_Genoapay_API_Handler::$client_key  = $this->get_option( 'client_key' );
 		WooCommerce_Gateway_Genoapay_API_Handler::$client_secret  = $this->get_option( 'client_secret' );
 		WooCommerce_Gateway_Genoapay_API_Handler::$sandbox       = $this->get_option( 'sandbox' );
 
 		WooCommerce_Gateway_Genoapay_API_Handler::post_token();
 
-		if( WooCommerce_Gateway_Genoapay_API_Handler::get_auth_token() ) {
+		if ( WooCommerce_Gateway_Genoapay_API_Handler::get_auth_token() ) {
 			$genoapay_config = WooCommerce_Gateway_Genoapay_API_Handler::get_configuration();
 			$this->minimum_amount = $genoapay_config->minimumAmount;
 			$this->maximum_amount = $genoapay_config->maximumAmount;
 			$this->genoapay_description = $genoapay_config->description;
-			foreach( $genoapay_config->availability as $availability ) {
+			foreach ( $genoapay_config->availability as $availability ) {
 				$this->genoapay_currencies[] = $availability->currency;
 			}
 
@@ -71,7 +91,6 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 				include_once( GENOAPAY_PLUGIN_DIR . '/includes/class-woocommerce-gateway-genoapay-ipn-handler.php' );
 				new WooCommerce_Gateway_Genoapay_IPN_Handler();
 			}
-
 		} else {
 			$this->enabled = 'no';
 		}
@@ -105,10 +124,10 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 				'default'     => __( 'Genoapay', 'wc-genoapay' ),
 				'desc_tip'    => true,
 			),
-			'client_id' => array(
-				'title' => __( 'Client ID', 'wc-genoapay' ),
+			'client_key' => array(
+				'title' => __( 'Client Key', 'wc-genoapay' ),
 				'type' => 'text',
-				'description' => __( 'This is the client id that is provided to the merchant and can be obtained from the Merchant account area.', 'wc-genoapay' ),
+				'description' => __( 'This is the client key that is provided to the merchant and can be obtained from the Merchant account area.', 'wc-genoapay' ),
 				'default' => '',
 			),
 			'client_secret' => array(
@@ -121,17 +140,19 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * Show the description from Genoapay.
+	 * Show the genoapay description.
 	 **/
 	public function payment_fields() {
-		if ( $description = $this->genoapay_description ) {
-			echo wpautop( wptexturize( $description ) );
+		$description = $this->genoapay_description;
+		if ( $description ) {
+			echo wp_kses_post( wptexturize( $description ) );
 		}
 	}
 
 	/**
-	 * Process the payment and return the result.
-	 * @param  int $order_id
+	 * Process the payment and redirect to payment page
+	 *
+	 * @param  int $order_id woocommerce order id.
 	 * @return array
 	 */
 	public function process_payment( $order_id ) {
@@ -146,6 +167,14 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 		);
 	}
 
+	/**
+	 * Process a refund.
+	 *
+	 * @param  int    $order_id woocommerce order id.
+	 * @param  string $amount refund amount.
+	 * @param  string $reason refund reason.
+	 * @return bool
+	 */
 	public function process_refund( $order_id, $amount = null, $reason = '' ) {
 		include_once( GENOAPAY_PLUGIN_DIR . '/includes/class-woocommerce-gateway-genoapay-request.php' );
 
@@ -159,7 +188,7 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 
 		$refund_id = $genoapay_request->request_refund( $order, $amount, $reason );
 
-		if( $refund_id ) {
+		if ( $refund_id ) {
 			$order->add_order_note( sprintf( __( 'Refunded %1$s - Refund ID: %2$s', 'wc-genoapay' ), $amount, $refund_id ) );
 			return true;
 		} else {
@@ -167,6 +196,12 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 		}
 	}
 
+	/**
+	 * Can the order be refunded?
+	 *
+	 * @param  WC_Order $order woocommerce order.
+	 * @return bool
+	 */
 	public function can_refund_order( $order ) {
 		return $order && $order->get_transaction_id();
 	}

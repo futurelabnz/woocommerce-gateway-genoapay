@@ -5,7 +5,6 @@
  * @package WooCommerce Payment Genoapay gateway
  */
 
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -15,11 +14,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WooCommerce_Gateway_Genoapay_IPN_Handler {
 
+	/**
+	 * Constructor for the IPN Handler.
+	 */
 	public function __construct() {
 		add_action( 'woocommerce_api_woocommerce_gateway_genoapay', array( $this, 'check_response' ) );
 		add_action( 'valid-genoapay-standard-ipn-request', array( $this, 'valid_response' ) );
 	}
 
+	/**
+	 * Check for IPN Response from Genoapay.
+	 */
 	public function check_response() {
 
 		if ( isset( $_REQUEST['_wpnonce'], $_REQUEST['reference'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'genoapay_' . sanitize_text_field( wp_unslash( $_REQUEST['reference'] ) ) ) ) {
@@ -37,6 +42,11 @@ class WooCommerce_Gateway_Genoapay_IPN_Handler {
 		) );
 	}
 
+	/**
+	 * Valid response from genoapay and match order status with woocommerce
+	 *
+	 * @param  array $request query string from Genoapay.
+	 */
 	function valid_response( $request ) {
 		if ( ! empty( $request['result'] ) && ! empty( $request['reference'] ) ) {
 
@@ -57,11 +67,11 @@ class WooCommerce_Gateway_Genoapay_IPN_Handler {
 
 			$order_received = false;
 
-			if( 'COMPLETED' === $request['result'] ) {
+			if ( 'COMPLETED' === $request['result'] ) {
 				$order->payment_complete( $request['token'] );
 				$order_received = true;
 			} else {
-				if( 'Payment failed' === $request['result'] || 'Account closed' === $request['result'] ) {
+				if ( 'Payment failed' === $request['result'] || 'Account closed' === $request['result'] ) {
 					$order->update_status( 'failed' );
 					$order_received = true;
 				} else {
@@ -74,7 +84,6 @@ class WooCommerce_Gateway_Genoapay_IPN_Handler {
 			} else {
 				wp_safe_redirect( esc_url_raw( $order->get_cancel_order_url_raw() ) );
 			}
-
 		}// End if().
 		exit();
 	}
