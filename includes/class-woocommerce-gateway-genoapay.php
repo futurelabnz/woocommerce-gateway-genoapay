@@ -212,7 +212,7 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 	 * @return bool
 	 */
 	public function validate_currency() {
-		return in_array( get_woocommerce_currency(), $this->genoapay_currencies );
+		return in_array( get_woocommerce_currency(), $this->genoapay_currencies, true );
 	}
 
 	/**
