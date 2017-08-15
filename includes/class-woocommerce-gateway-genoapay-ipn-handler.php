@@ -57,13 +57,16 @@ class WooCommerce_Gateway_Genoapay_IPN_Handler {
 
 			$order_received = false;
 
-			switch ( $request['result'] ) {
-				case 'COMPLETED':
-					$order->payment_complete( $request['token'] );
+			if( 'COMPLETED' === $request['result'] ) {
+				$order->payment_complete( $request['token'] );
+				$order_received = true;
+			} else {
+				if( 'Payment failed' === $request['result'] || 'Account closed' === $request['result'] ) {
+					$order->update_status( 'failed' );
 					$order_received = true;
-					break;
-				default:
+				} else {
 					$order_received = false;
+				}
 			}
 
 			if ( $order_received ) {
@@ -71,6 +74,7 @@ class WooCommerce_Gateway_Genoapay_IPN_Handler {
 			} else {
 				wp_safe_redirect( esc_url_raw( $order->get_cancel_order_url_raw() ) );
 			}
+
 		}// End if().
 		exit();
 	}
