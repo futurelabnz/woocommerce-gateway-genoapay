@@ -99,11 +99,13 @@ class WooCommerce_Gateway_Genoapay_API_Handler {
 		);
 
 		if ( is_wp_error( $response ) ) {
+			WooCommerce_Gateway_Genoapay::log( 'Token Failed: ' . $response->get_error_message(), 'error' );
 			throw new Exception( $response->get_error_message() );
 		}
 
 		$auth = json_decode( $response['body'] );
 		if ( ! empty( $auth->auth_token ) ) {
+			WooCommerce_Gateway_Genoapay::log( 'successful authentication' );
 			self::$auth_token = $auth->auth_token;
 		}
 	}
@@ -129,11 +131,13 @@ class WooCommerce_Gateway_Genoapay_API_Handler {
 		);
 
 		if ( is_wp_error( $response ) ) {
+			WooCommerce_Gateway_Genoapay::log( 'Configuration Failed: ' . $response->get_error_message(), 'error' );
 			throw new Exception( $response->get_error_message() );
 		}
 
 		$configuration = json_decode( $response['body'] );
 		if ( empty( $configuration->error ) ) {
+			WooCommerce_Gateway_Genoapay::log( 'Configuration Result: ' . wc_print_r( $response['body'], true ) );
 			return $configuration;
 		}
 	}
@@ -161,14 +165,17 @@ class WooCommerce_Gateway_Genoapay_API_Handler {
 		);
 
 		if ( is_wp_error( $response ) ) {
+			WooCommerce_Gateway_Genoapay::log( 'Sale Failed: ' . $response->get_error_message(), 'error' );
 			throw new Exception( $response->get_error_message() );
 		}
 
 		$sale = json_decode( $response['body'] );
 
 		if ( ! empty( $sale->paymentUrl ) ) {
+			WooCommerce_Gateway_Genoapay::log( 'Sale Result: ' . wc_print_r( $response['body'], true ) );
 			return $sale->paymentUrl;
 		} else {
+			WooCommerce_Gateway_Genoapay::log( 'Sale Failed: ' . wc_print_r( $response['body'], true ), 'error' );
 			return false;
 		}
 	}
@@ -197,14 +204,17 @@ class WooCommerce_Gateway_Genoapay_API_Handler {
 		);
 
 		if ( is_wp_error( $response ) ) {
+			WooCommerce_Gateway_Genoapay::log( 'Refund Failed: ' . $response->get_error_message(), 'error' );
 			throw new Exception( $response->get_error_message() );
 		}
 
 		$refund = json_decode( $response['body'] );
 
 		if ( ! empty( $refund->refundId ) ) {
+			WooCommerce_Gateway_Genoapay::log( 'Refund Result: ' . wc_print_r( $response['body'], true ) );
 			return $refund->refundId;
 		} else {
+			WooCommerce_Gateway_Genoapay::log( 'Refund Failed: ' . wc_print_r( $response['body'], true ), 'error' );
 			return false;
 		}
 	}

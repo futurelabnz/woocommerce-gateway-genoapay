@@ -76,6 +76,8 @@ class WooCommerce_Gateway_Genoapay_Request {
 				),
 			);
 
+			WooCommerce_Gateway_Genoapay::log( 'Genoapay Request Args for sale ' . $order->get_order_number() . ': ' . wc_print_r( $sale, true ) );
+
 			$sale_json = stripslashes( wp_json_encode( $sale ) );
 
 			$signature = $this->request_signature( $sale_json );
@@ -120,6 +122,8 @@ class WooCommerce_Gateway_Genoapay_Request {
 				'refund'         => $refund_json,
 				'signature'    => $signature,
 			);
+
+			WooCommerce_Gateway_Genoapay::log( 'Genoapay Request Args for refund ' . $order->get_order_number() . ': ' . wc_print_r( $refund, true ) );
 
 			return WooCommerce_Gateway_Genoapay_API_Handler::sale_refund( $request, $order );
 		} else {

@@ -15,6 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 
+	/** @var bool Whether or not logging is enabled */
+	public static $log_enabled = false;
+
+	/** @var WC_Logger Logger instance */
+	public static $log = false;
+
 	/**
 	 * Minimum purchase amount
 	 *
@@ -62,9 +68,12 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 
 		// Define user set variables.
 		$this->sandbox       = $this->get_option( 'sandbox' );
-		$this->title       		= $this->get_option( 'title' );
-		$this->client_key 	= $this->get_option( 'client_key' );
-		$this->client_secret 	= $this->get_option( 'client_secret' );
+		$this->debug         = 'yes' === $this->get_option( 'debug', 'no' );
+		$this->title         = $this->get_option( 'title' );
+		$this->client_key 	 = $this->get_option( 'client_key' );
+		$this->client_secret = $this->get_option( 'client_secret' );
+
+		self::$log_enabled    = $this->debug;
 
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
@@ -86,12 +95,14 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 			}
 
 			if ( ! $this->validate_currency() || $this->validate_min_max_amount() ) {
+				$this->log( 'Genoapy gateway disabled: Invalid currency or Order amount not within minimum and maximum number', 'error' );
 				$this->enabled = 'no';
 			} else {
 				include_once( GENOAPAY_PLUGIN_DIR . '/includes/class-woocommerce-gateway-genoapay-ipn-handler.php' );
 				new WooCommerce_Gateway_Genoapay_IPN_Handler();
 			}
 		} else {
+			$this->log( 'Genoapy gateway disabled: No auth token', 'error' );
 			$this->enabled = 'no';
 		}
 	}
@@ -116,6 +127,13 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 				'type' => 'checkbox',
 				'description' => __( 'Place the payment gateway in development mode.', 'wc-genoapay' ),
 				'default' => 'no',
+			),
+			'debug' => array(
+				'title'       => __( 'Debug log', 'wc-genoapay' ),
+				'type'        => 'checkbox',
+				'label'       => __( 'Enable logging', 'wc-genoapay' ),
+				'default'     => 'no',
+				'description' => sprintf( __( 'Log Genoapay events, such as IPN requests, inside %s', 'wc-genoapay' ), '<code>' . WC_Log_Handler_File::get_log_file_path( 'genoapay' ) . '</code>' ),
 			),
 			'title' => array(
 				'title'       => __( 'Title', 'wc-genoapay' ),
@@ -181,6 +199,7 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 		$order = wc_get_order( $order_id );
 
 		if ( ! $this->can_refund_order( $order ) ) {
+			$this->log( 'Refund Failed: No transaction ID', 'error' );
 			return new WP_Error( 'error', __( 'Refund failed: No transaction Token', 'wc-genoapay' ) );
 		}
 
@@ -189,7 +208,9 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 		$refund_id = $genoapay_request->request_refund( $order, $amount, $reason );
 
 		if ( $refund_id ) {
-			$order->add_order_note( sprintf( __( 'Refunded %1$s - Refund ID: %2$s', 'wc-genoapay' ), $amount, $refund_id ) );
+			$refund_result = sprintf( __( 'Refunded %1$s - Refund ID: %2$s', 'wc-genoapay' ), $amount, $refund_id );
+			$this->log( $refund_result );
+			$order->add_order_note( $refund_result );
 			return true;
 		} else {
 			return false;
@@ -223,5 +244,21 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 			return ( ( $this->minimum_amount > 0 && $this->minimum_amount > WC()->cart->get_displayed_subtotal() ) || $this->maximum_amount < WC()->cart->get_displayed_subtotal() );
 		}
 
+	}
+
+	/**
+	 * Logging method.
+	 *
+	 * @param string $message Log message.
+	 * @param string $level   Optional. Default 'info'.
+	 *     emergency|alert|critical|error|warning|notice|info|debug
+	 */
+	public static function log( $message, $level = 'info' ) {
+		if ( self::$log_enabled ) {
+			if ( empty( self::$log ) ) {
+				self::$log = wc_get_logger();
+			}
+			self::$log->log( $level, $message, array( 'source' => 'genoapay' ) );
+		}
 	}
 }
