@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce Payment Genoapay gateway
  * Plugin URI: https://www.futurelab.co.nz
  * Description: A payment gateway for Genoapay
- * Version: 1.0
+ * Version: 1.1
  * Author: FutureLab
  * Author URI: https://www.futurelab.co.nz
  * Text Domain: wc-genoapay
@@ -22,9 +22,12 @@ if ( ! in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins',
 	return;
 }
 
-
+define( 'GENOAPAY_VERSION', '1.1' );
 define( 'GENOAPAY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GENOAPAY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+
+require_once( GENOAPAY_PLUGIN_DIR . 'includes/class-genoapay.php' );
+add_action( 'init', array( 'Genoapay', 'init' ) );
 
 add_action( 'plugins_loaded', 'woocommerce_genoapay_init' );
 

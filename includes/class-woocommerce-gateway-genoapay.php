@@ -246,8 +246,11 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 	 * Ensure minimum and maximum amount is valid.
 	 */
 	public function validate_min_max_amount() {
+		global $product;
 		if ( is_checkout() ) {
 			return ( ( $this->minimum_amount > 0 && $this->minimum_amount > WC()->cart->get_displayed_subtotal() ) || $this->maximum_amount < WC()->cart->get_displayed_subtotal() );
+		} elseif( is_product() ) {
+			return ( ( $this->minimum_amount > 0 && $this->minimum_amount > $product->get_price() ) || $this->maximum_amount < $product->get_price() );
 		}
 
 	}
