@@ -77,11 +77,7 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
-		include_once( GENOAPAY_PLUGIN_DIR . '/includes/class-woocommerce-gateway-genoapay-api-handler.php' );
-
-		WooCommerce_Gateway_Genoapay_API_Handler::$client_key  = $this->get_option( 'client_key' );
-		WooCommerce_Gateway_Genoapay_API_Handler::$client_secret  = $this->get_option( 'client_secret' );
-		WooCommerce_Gateway_Genoapay_API_Handler::$sandbox       = $this->get_option( 'sandbox' );
+		$this->init_api();
 
 		WooCommerce_Gateway_Genoapay_API_Handler::post_token();
 
@@ -106,7 +102,6 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 			$this->enabled = 'no';
 		}
 	}
-
 
 	/**
 	 * Initialize Gateway Settings Form Fields
@@ -155,6 +150,17 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 				'default' => '',
 			),
 		) );
+	}
+
+	/**
+	 * Init the API class and set the key/secret etc.
+	 */
+	protected function init_api() {
+		include_once( GENOAPAY_PLUGIN_DIR . '/includes/class-woocommerce-gateway-genoapay-api-handler.php' );
+
+		WooCommerce_Gateway_Genoapay_API_Handler::$client_key  = $this->get_option( 'client_key' );
+		WooCommerce_Gateway_Genoapay_API_Handler::$client_secret  = $this->get_option( 'client_secret' );
+		WooCommerce_Gateway_Genoapay_API_Handler::$sandbox       = $this->get_option( 'sandbox' );
 	}
 
 	/**

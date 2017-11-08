@@ -26,7 +26,7 @@ class WooCommerce_Gateway_Genoapay_IPN_Handler {
 	 * Check for IPN Response from Genoapay.
 	 */
 	public function check_response() {
-
+		WooCommerce_Gateway_Genoapay::log( 'Checking IPN response is valid' );
 		if ( isset( $_REQUEST['_wpnonce'], $_REQUEST['reference'] ) && wp_verify_nonce( sanitize_key( $_REQUEST['_wpnonce'] ), 'genoapay_' . sanitize_text_field( wp_unslash( $_REQUEST['reference'] ) ) ) ) {
 
 			$_REQUEST = wp_unslash( $_REQUEST ); // Input var okay.
@@ -54,6 +54,9 @@ class WooCommerce_Gateway_Genoapay_IPN_Handler {
 			$order_id = $reference[1];
 
 			$order = wc_get_order( $order_id );
+
+			WooCommerce_Gateway_Genoapay::log( 'Found order #' . $order->get_id() );
+			WooCommerce_Gateway_Genoapay::log( 'Payment status: ' . $request['result'] );
 
 			if ( $order ) {
 				$return_url = $order->get_checkout_order_received_url();
