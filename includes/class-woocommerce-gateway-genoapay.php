@@ -61,6 +61,7 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 			'products',
 			'refunds',
 		);
+		$this->order_button_text  = __( 'Proceed to Genoapay', 'wc-genoapay' );
 
 		// Load the settings.
 		$this->init_form_fields();
@@ -69,6 +70,7 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 		// Define user set variables.
 		$this->sandbox       = $this->get_option( 'sandbox' );
 		$this->debug         = 'yes' === $this->get_option( 'debug', 'no' );
+		$this->display_in_modal = 'yes' === $this->get_option( 'display_in_modal' );
 		$this->title         = $this->get_option( 'title' );
 		$this->client_key 	 = $this->get_option( 'client_key' );
 		$this->client_secret = $this->get_option( 'client_secret' );
@@ -101,6 +103,44 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 			$this->log( 'Genoapy gateway disabled: No auth token', 'error' );
 			$this->enabled = 'no';
 		}
+
+		// Hooks.
+		add_action( 'wp_enqueue_scripts', array( $this, 'payment_scripts' ) );
+	}
+
+	/**
+	 * payment_scripts function.
+	 *
+	 * Outputs scripts used for stripe payment
+	 *
+	 * @access public
+	 */
+	public function payment_scripts() {
+		if ( ! is_cart() && ! is_checkout() && ! isset( $_GET['pay_for_order'] ) && ! is_add_payment_method_page() ) {
+			return;
+		}
+
+		if ( $this->display_in_modal ) {
+			wp_dequeue_script( 'wc-checkout' );
+			wp_register_script( 'genoapay-script', GENOAPAY_PLUGIN_URL . 'assets/js/genoapay-checkout.js', array( 'jquery', 'woocommerce', 'wc-country-select', 'wc-address-i18n' ), GENOAPAY_VERSION );
+
+			$translation_array = array(
+					'ajax_url'                  => WC()->ajax_url(),
+					'wc_ajax_url'               => WC_AJAX::get_endpoint( "%%endpoint%%" ),
+					'update_order_review_nonce' => wp_create_nonce( 'update-order-review' ),
+					'apply_coupon_nonce'        => wp_create_nonce( 'apply-coupon' ),
+					'remove_coupon_nonce'       => wp_create_nonce( 'remove-coupon' ),
+					'option_guest_checkout'     => get_option( 'woocommerce_enable_guest_checkout' ),
+					'checkout_url'              => WC_AJAX::get_endpoint( "checkout" ),
+					'is_checkout'               => is_page( wc_get_page_id( 'checkout' ) ) && empty( $wp->query_vars['order-pay'] ) && ! isset( $wp->query_vars['order-received'] ) ? 1 : 0,
+					'debug_mode'                => defined( 'WP_DEBUG' ) && WP_DEBUG,
+					'i18n_checkout_error'       => esc_attr__( 'Error processing checkout. Please try again.', 'woocommerce' ),
+				);
+			wp_localize_script( 'genoapay-script', 'wc_checkout_params', $translation_array );
+
+			// Enqueued script with localized data.
+			wp_enqueue_script( 'genoapay-script' );
+		}
 	}
 
 	/**
@@ -130,6 +170,13 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 				'default'     => 'no',
 				'description' => sprintf( __( 'Log Genoapay events, such as IPN requests, inside %s', 'wc-genoapay' ), '<code>' . WC_Log_Handler_File::get_log_file_path( 'genoapay' ) . '</code>' ),
 			),
+			'display_in_modal' => array(
+				'title'       => __( 'Display in modal', 'wc-genoapay' ),
+				'label'       => __( 'Enable modal Checkout', 'wc-genoapay' ),
+				'type'        => 'checkbox',
+				'description' => __( 'If enabled, open genoapay payment in modal instead of redirect to the page.', 'wc-genoapay' ),
+				'default'     => 'no',
+			),
 			'title' => array(
 				'title'       => __( 'Title', 'wc-genoapay' ),
 				'type'        => 'text',
@@ -150,6 +197,18 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 				'default' => '',
 			),
 		) );
+	}
+
+	/**
+	 * Get gateway icon.
+	 * @return string
+	 */
+	public function get_icon() {
+		$icon_html = '';
+
+		$icon_html .= '<img src="' . GENOAPAY_PLUGIN_URL . 'assets/images/genoapay-logo.png' . '" width="100" alt="' . esc_attr__( 'Genoapay', 'wc-genoapay' ) . '" />';
+
+		return apply_filters( 'woocommerce_gateway_icon', $icon_html, $this->id );
 	}
 
 	/**
@@ -187,7 +246,7 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 
 		return array(
 			'result'   => 'success',
-			'redirect' => $genoapay_request->get_request_url( $order ),
+			'redirect' => $genoapay_request->get_request_url( $order, $this->display_in_modal ),
 		);
 	}
 
