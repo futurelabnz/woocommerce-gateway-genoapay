@@ -53,7 +53,7 @@ if ( ! class_exists( 'Genoapay' ) ) {
 			if ( $genoapay_gateway->validate_currency() && ! $genoapay_gateway->validate_min_max_amount() ) :
 			?>
 				<div class="genoapay-product-payment-details">
-					<div class="genoapay-message">or 10 Interest free payments from $<?php echo number_format( (float) self::round_up( $product->get_price() / 10, 2), 2, '.', ''); ?></div>
+					<div class="genoapay-message">or 10 Interest free payments from $<?php echo number_format( (float) self::round_up( $product->get_price() / 10, 2 ), 2, '.', '' ); ?></div>
 					<div class="genoapay-logo">
 						<img width="100" src="<?php echo GENOAPAY_PLUGIN_URL . 'assets/images/genoapay-logo.png';?>" alt="Genoapay" itemprop="logo">
 						<a href="https://www.genoapay.com/" target="_blank"><i>Learn More</i></a>
@@ -65,13 +65,14 @@ if ( ! class_exists( 'Genoapay' ) ) {
 
 		/**
 		 * Alwasy round up to 2 decimal places
-		 * @param  Integer $value    
+		 *
+		 * @param  Integer $value
 		 * @param  Integer $precision
 		 * @return string
 		 */
-		public static function round_up ( $value, $precision ) { 
-		    $pow = pow ( 10, $precision ); 
-		    return ( ceil ( $pow * $value ) + ceil ( $pow * $value - ceil ( $pow * $value ) ) ) / $pow; 
+		public static function round_up( $value, $precision ) {
+			$pow = pow( 10, $precision );
+			return ( ceil( $pow * $value ) + ceil( $pow * $value - ceil( $pow * $value ) ) ) / $pow;
 		}
 
 		/**

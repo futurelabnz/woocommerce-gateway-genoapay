@@ -63,7 +63,7 @@ jQuery( function( $ ) {
 
 			// If there is one method, we can hide the radio input
 			if ( 1 === $payment_methods.length ) {
-				$payment_methods.eq(0).hide();
+				$payment_methods.eq( 0 ).hide();
 			}
 
 			// If there was a previously selected method, check that one.
@@ -73,11 +73,11 @@ jQuery( function( $ ) {
 
 			// If there are none selected, select the first.
 			if ( 0 === $payment_methods.filter( ':checked' ).length ) {
-				$payment_methods.eq(0).prop( 'checked', true );
+				$payment_methods.eq( 0 ).prop( 'checked', true );
 			}
 
 			// Trigger click event for selected method
-			$payment_methods.filter( ':checked' ).eq(0).trigger( 'click' );
+			$payment_methods.filter( ':checked' ).eq( 0 ).trigger( 'click' );
 		},
 		get_payment_method: function() {
 			return wc_checkout_form.$checkout_form.find( 'input[name="payment_method"]:checked' ).val();
@@ -204,9 +204,9 @@ jQuery( function( $ ) {
 				if ( validate_email ) {
 					if ( $this.val() ) {
 						/* https://stackoverflow.com/questions/2855865/jquery-validate-e-mail-address-regex */
-						var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
+						var pattern = new RegExp( /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i );
 
-						if ( ! pattern.test( $this.val()  ) ) {
+						if ( ! pattern.test( $this.val() ) ) {
 							$parent.removeClass( 'woocommerce-validated' ).addClass( 'woocommerce-invalid woocommerce-invalid-email' );
 							validated = false;
 						}
@@ -462,16 +462,16 @@ jQuery( function( $ ) {
 					success:	function( result ) {
 						try {
 							if ( 'success' === result.result ) {
-								if( wc_checkout_form.is_genoapy_chosen() ) {
-									$('body').append(
-						                '<div class="genoapay_payment_overlay">\n\
+								if ( wc_checkout_form.is_genoapy_chosen() ) {
+									$( 'body' ).append(
+										'<div class="genoapay_payment_overlay">\n\
 						                    <div class="genoapay_payment_popup">\n\
 						                        <div class="embed-container">\n\
-						                        	<iframe src="'+ result.redirect +'" frameborder="0"></iframe>\n\
+						                        	<iframe src="' + result.redirect + '" frameborder="0"></iframe>\n\
 						                        </div>\n\
 						                    </div>\n\
 						                </div>'
-						            );
+									);
 								} else {
 									if ( -1 === result.redirect.indexOf( 'https://' ) || -1 === result.redirect.indexOf( 'http://' ) ) {
 										window.location = result.redirect;
@@ -484,7 +484,7 @@ jQuery( function( $ ) {
 							} else {
 								throw 'Invalid response';
 							}
-						} catch( err ) {
+						} catch ( err ) {
 							// Reload page
 							if ( true === result.reload ) {
 								window.location.reload();
@@ -502,13 +502,13 @@ jQuery( function( $ ) {
 							} else {
 								wc_checkout_form.submit_error( '<div class="woocommerce-error">' + wc_checkout_params.i18n_checkout_error + '</div>' );
 							}
-						}
+						}// End try().
 					},
 					error:	function( jqXHR, textStatus, errorThrown ) {
 						wc_checkout_form.submit_error( '<div class="woocommerce-error">' + errorThrown + '</div>' );
 					}
 				});
-			}
+			}// End if().
 
 			return false;
 		},
@@ -649,17 +649,17 @@ jQuery( function( $ ) {
 		}
 	};
 
-	$(document).mouseup(function (e) {
-        var popup = $(".genoapay_payment_popup");
-        if( popup.length ) {
-	        if (!popup.is(e.target) && popup.has(e.target).length == 0) {
-	        	if( confirm("Confirm to cancel payment") ) { 
-	            	$(".genoapay_payment_overlay").remove();
-	            	wc_checkout_form.$checkout_form.removeClass( 'processing' ).unblock();
-	        	}
-	        }
-	    }
-    });
+	$( document ).mouseup(function (e) {
+		var popup = $( ".genoapay_payment_popup" );
+		if ( popup.length ) {
+			if ( ! popup.is( e.target ) && popup.has( e.target ).length == 0) {
+				if ( confirm( "Confirm to cancel payment" ) ) {
+					$( ".genoapay_payment_overlay" ).remove();
+					wc_checkout_form.$checkout_form.removeClass( 'processing' ).unblock();
+				}
+			}
+		}
+	});
 
 	wc_checkout_form.init();
 	wc_checkout_coupons.init();

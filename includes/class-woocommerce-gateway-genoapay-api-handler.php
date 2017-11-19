@@ -116,9 +116,11 @@ class WooCommerce_Gateway_Genoapay_API_Handler {
 	 * @return array response from API
 	 * @throws Exception Thrown on failure.
 	 */
-	public static function get_configuration() {
+	public static function get_configuration( $query_arg = array() ) {
+		$config_endpoint = add_query_arg( $query_arg, self::get_endpoint() . '/configuration' );
+
 		$response = wp_safe_remote_post(
-			self::get_endpoint() . '/configuration',
+			$config_endpoint,
 			array(
 				'method'      => 'GET',
 				'timeout'     => 70,

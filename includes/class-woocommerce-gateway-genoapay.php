@@ -84,7 +84,15 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 		WooCommerce_Gateway_Genoapay_API_Handler::post_token();
 
 		if ( WooCommerce_Gateway_Genoapay_API_Handler::get_auth_token() ) {
-			$genoapay_config = WooCommerce_Gateway_Genoapay_API_Handler::get_configuration();
+			global $woocommerce;
+			$query_arg = array();
+			if( is_checkout() ) {
+				$query_arg = array(
+					'totalAmount' => $woocommerce->cart->total,
+					'displayInModal' => $this->display_in_modal
+				);
+			}
+			$genoapay_config = WooCommerce_Gateway_Genoapay_API_Handler::get_configuration( $query_arg );
 			$this->minimum_amount = $genoapay_config->minimumAmount;
 			$this->maximum_amount = $genoapay_config->maximumAmount;
 			$this->genoapay_description = $genoapay_config->description;
@@ -126,12 +134,12 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 
 			$translation_array = array(
 					'ajax_url'                  => WC()->ajax_url(),
-					'wc_ajax_url'               => WC_AJAX::get_endpoint( "%%endpoint%%" ),
+					'wc_ajax_url'               => WC_AJAX::get_endpoint( '%%endpoint%%' ),
 					'update_order_review_nonce' => wp_create_nonce( 'update-order-review' ),
 					'apply_coupon_nonce'        => wp_create_nonce( 'apply-coupon' ),
 					'remove_coupon_nonce'       => wp_create_nonce( 'remove-coupon' ),
 					'option_guest_checkout'     => get_option( 'woocommerce_enable_guest_checkout' ),
-					'checkout_url'              => WC_AJAX::get_endpoint( "checkout" ),
+					'checkout_url'              => WC_AJAX::get_endpoint( 'checkout' ),
 					'is_checkout'               => is_page( wc_get_page_id( 'checkout' ) ) && empty( $wp->query_vars['order-pay'] ) && ! isset( $wp->query_vars['order-received'] ) ? 1 : 0,
 					'debug_mode'                => defined( 'WP_DEBUG' ) && WP_DEBUG,
 					'i18n_checkout_error'       => esc_attr__( 'Error processing checkout. Please try again.', 'woocommerce' ),
@@ -201,6 +209,7 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 
 	/**
 	 * Get gateway icon.
+	 *
 	 * @return string
 	 */
 	public function get_icon() {
@@ -308,7 +317,7 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 		global $product;
 		if ( is_checkout() ) {
 			return ( ( $this->minimum_amount > 0 && $this->minimum_amount > WC()->cart->get_displayed_subtotal() ) || $this->maximum_amount < WC()->cart->get_displayed_subtotal() );
-		} elseif( is_product() ) {
+		} elseif ( is_product() ) {
 			return ( ( $this->minimum_amount > 0 && $this->minimum_amount > $product->get_price() ) || $this->maximum_amount < $product->get_price() );
 		}
 
@@ -326,7 +335,9 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 			if ( empty( self::$log ) ) {
 				self::$log = wc_get_logger();
 			}
-			self::$log->log( $level, $message, array( 'source' => 'genoapay' ) );
+			self::$log->log( $level, $message, array(
+				'source' => 'genoapay',
+			) );
 		}
 	}
 }
