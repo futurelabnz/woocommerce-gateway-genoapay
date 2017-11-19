@@ -15,10 +15,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 
-	/** @var bool Whether or not logging is enabled */
+	/**
+	 * Bool Whether or not logging is enabled
+	 *
+	 * @var boolean
+	 */
 	public static $log_enabled = false;
 
-	/** @var WC_Logger Logger instance */
+	/**
+	 * WC_Logger Logger instance
+	 *
+	 * @var boolean
+	 */
 	public static $log = false;
 
 	/**
@@ -86,10 +94,10 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 		if ( WooCommerce_Gateway_Genoapay_API_Handler::get_auth_token() ) {
 			global $woocommerce;
 			$query_arg = array();
-			if( is_checkout() ) {
+			if ( is_checkout() ) {
 				$query_arg = array(
 					'totalAmount' => $woocommerce->cart->total,
-					'displayInModal' => $this->display_in_modal
+					'displayInModal' => $this->display_in_modal,
 				);
 			}
 			$genoapay_config = WooCommerce_Gateway_Genoapay_API_Handler::get_configuration( $query_arg );
@@ -112,12 +120,11 @@ class WooCommerce_Gateway_Genoapay extends WC_Payment_Gateway {
 			$this->enabled = 'no';
 		}
 
-		// Hooks.
 		add_action( 'wp_enqueue_scripts', array( $this, 'payment_scripts' ) );
 	}
 
 	/**
-	 * payment_scripts function.
+	 * Payment_scripts function.
 	 *
 	 * Outputs scripts used for stripe payment
 	 *

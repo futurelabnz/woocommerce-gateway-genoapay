@@ -14,10 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WooCommerce_Gateway_Genoapay_Request {
 
+
 	/**
 	 * Get the Genoapay request URL for an order.
 	 *
 	 * @param  WC_Order $order woocommerce order.
+	 * @param  boolean  $display_in_modal bool Whether or not display in modal is enabled.
 	 * @return string
 	 */
 	public function get_request_url( $order, $display_in_modal ) {

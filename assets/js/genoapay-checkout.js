@@ -1,3 +1,8 @@
+/**
+ * This script is overwritten from woocommerce/assets/js/frontend/checkout.min.js
+ * To allow payment to disable in modal
+ */
+
 /* global wc_checkout_params */
 jQuery( function( $ ) {
 

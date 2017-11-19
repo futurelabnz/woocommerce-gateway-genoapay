@@ -55,7 +55,7 @@ if ( ! class_exists( 'Genoapay' ) ) {
 				<div class="genoapay-product-payment-details">
 					<div class="genoapay-message">or 10 Interest free payments from $<?php echo number_format( (float) self::round_up( $product->get_price() / 10, 2 ), 2, '.', '' ); ?></div>
 					<div class="genoapay-logo">
-						<img width="100" src="<?php echo GENOAPAY_PLUGIN_URL . 'assets/images/genoapay-logo.png';?>" alt="Genoapay" itemprop="logo">
+						<img width="100" src="<?php echo esc_url( GENOAPAY_PLUGIN_URL . 'assets/images/genoapay-logo.png' );?>" alt="Genoapay" itemprop="logo">
 						<a href="https://www.genoapay.com/" target="_blank"><i>Learn More</i></a>
 					</div>
 				</div>
@@ -64,10 +64,10 @@ if ( ! class_exists( 'Genoapay' ) ) {
 		}
 
 		/**
-		 * Alwasy round up to 2 decimal places
+		 * Alwasy round up to decimal places
 		 *
-		 * @param  Integer $value
-		 * @param  Integer $precision
+		 * @param  Integer $value dollar value.
+		 * @param  Integer $precision decimal places.
 		 * @return string
 		 */
 		public static function round_up( $value, $precision ) {

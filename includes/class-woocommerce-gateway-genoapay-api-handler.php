@@ -113,6 +113,7 @@ class WooCommerce_Gateway_Genoapay_API_Handler {
 	/**
 	 * Updates the client server with the latest configuration from the Genoapay system.
 	 *
+	 * @param  array $query_arg query args
 	 * @return array response from API
 	 * @throws Exception Thrown on failure.
 	 */
